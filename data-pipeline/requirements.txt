@@ -13,3 +13,5 @@ praw
 ntscraper
 beautifulsoup4
 PyMuPDF
+yfinance
+pandas_market_calendars

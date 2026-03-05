@@ -22,18 +22,33 @@ class VectorStorage:
             embedding_function=self.embedding_fn
         )
 
-    def add_news(self, ticker: str, news_list: list):
-        """수집된 뉴스 리스트를 벡터 DB에 저장합니다."""
-        ids = [f"{ticker}_{i}_{os.urandom(4).hex()}" for i in range(len(news_list))]
-        documents = [n['description'] for n in news_list]
-        metadatas = [{"ticker": ticker, "title": n['title'], "link": n['link']} for n in news_list]
+    def add_document(self, ticker: str, content: str, metadata: dict):
+        """
+        뉴스, 리포트, 공시 등 비정형 텍스트를 풍부한 메타데이터와 함께 저장합니다.
+        metadata 예시: {
+            "source": "한경컨센서스",
+            "author": "이베스트투자증권",
+            "published_at": "2026-03-05",
+            "title": "반도체 업황 분석",
+            "data_type": "Report",
+            "url": "..."
+        }
+        """
+        doc_id = f"{ticker}_{metadata['data_type']}_{os.urandom(4).hex()}"
+        
+        # 필수 메타데이터 강제 포함
+        full_metadata = {
+            **metadata,
+            "ticker": ticker,
+            "stored_at": str(os.urandom(4).hex()) # 저장 시점 식별용
+        }
         
         self.collection.add(
-            ids=ids,
-            documents=documents,
-            metadatas=metadatas
+            ids=[doc_id],
+            documents=[content],
+            metadatas=[full_metadata]
         )
-        print(f"✅ [{ticker}] 뉴스 {len(news_list)}건 벡터 DB 저장 완료")
+        print(f"✅ [{ticker}] {metadata['data_type']} 데이터 저장 완료 (Source: {metadata['source']})")
 
     def query_news(self, ticker: str, query: str, n_results: int = 3):
         """질문과 가장 유사한 뉴스를 검색합니다 (RAG의 핵심)"""
