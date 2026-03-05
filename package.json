@@ -1,7 +1,10 @@
 {
   "name": "stock-web-root",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "frontend:dev": "cd frontend && npm install && npm run dev",
+    "backend:dev": "cd backend && npm install && npx wrangler dev",
+    "all:dev": "npm run frontend:dev & npm run backend:dev"
   }
 }
