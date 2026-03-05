@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain.prompts import ChatPromptTemplate
 from ..storage.vector_db import VectorStorage
 from ..collectors.naver_news import NaverNewsCollector
@@ -9,16 +9,21 @@ class HybridRAGEngine:
         self.vector_db = VectorStorage()
         self.news_collector = NaverNewsCollector()
         self.report_collector = ReportCollector()
-        self.llm = ChatOpenAI(model="gpt-4-turbo-preview")
+        # Ollama 로컬 모델 사용 (Qwen 3.5 9B 기반)
+        self.llm = ChatOllama(
+            model="qwen3.5:9b",
+            base_url="http://localhost:11434",
+            temperature=0.3
+        )
 
     def analyze_stock_hybrid(self, ticker: str, stock_name: str):
         """
-        [하이브리드 RAG 분석]
+        [Ollama 기반 하이브리드 RAG 분석]
         1. 과거 맥락: 벡터 DB에서 최근 리포트/공시 검색 (중장기 펀더멘털)
         2. 실시간 감각: 네이버 뉴스에서 즉시 속보 검색 (단기 모멘텀)
         3. 통합 분석: 두 정보를 결합하여 최종 '헤게모니 스코어' 산출
         """
-        print(f"🔍 [{stock_name}] 하이브리드 분석 엔진 가동 중...")
+        print(f"🔍 [{stock_name}] Ollama(Qwen 3.5) 하이브리드 분석 엔진 가동 중...")
 
         # 1. 과거 지식 검색 (Vector DB - 리포트, 공시 등)
         past_context_docs = self.vector_db.query_news(ticker, f"{stock_name}의 시장 지배력, 경쟁 우위, 기업 가치 분석")
@@ -54,8 +59,5 @@ class HybridRAGEngine:
         
         return response.content
 
-# 테스트용
 if __name__ == "__main__":
     engine = HybridRAGEngine()
-    # result = engine.analyze_stock_hybrid("005930", "삼성전자")
-    # print(result)

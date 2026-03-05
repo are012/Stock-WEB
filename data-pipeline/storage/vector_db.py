@@ -1,26 +1,43 @@
 import chromadb
-from chromadb.utils import embedding_functions
 import os
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Ollama 임베딩 함수 정의
+class OllamaEmbeddingFunction:
+    def __init__(self, model_name="nomic-embed-text", base_url="http://localhost:11434"):
+        self.model_name = model_name
+        self.base_url = f"{base_url}/api/embeddings"
+
+    def __call__(self, input: list[str]):
+        embeddings = []
+        for text in input:
+            res = requests.post(self.base_url, json={
+                "model": self.model_name,
+                "prompt": text
+            })
+            embeddings.append(res.json()["embedding"])
+        return embeddings
+
 class VectorStorage:
     def __init__(self, collection_name="stock_news"):
-        # 로컬에 데이터 저장 (data-pipeline/storage/chroma_db)
+        # 로컬에 데이터 저장
         self.client = chromadb.PersistentClient(path="./storage/chroma_db")
-        
-        # OpenAI 임베딩 함수 설정
-        self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.getenv("OPENAI_API_KEY"),
-            model_name="text-embedding-3-small"
+
+        # Ollama 로컬 임베딩 모델 사용 (nomic-embed-text)
+        self.embedding_fn = OllamaEmbeddingFunction(
+            model_name="nomic-embed-text",
+            base_url="http://localhost:11434"
         )
-        
+
         # 컬렉션 생성 또는 로드
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
             embedding_function=self.embedding_fn
         )
+...
 
     def add_document(self, ticker: str, content: str, metadata: dict):
         """

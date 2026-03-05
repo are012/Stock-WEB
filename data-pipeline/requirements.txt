@@ -9,6 +9,7 @@ chromadb
 openai
 langchain-community
 langchain-openai
+langchain-ollama
 praw
 ntscraper
 beautifulsoup4
