@@ -1,0 +1,12 @@
+{
+  "name": "stock-web-agents",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "wrangler": "^3.30.0"
+  },
+  "dependencies": {
+    "agents": "latest",
+    "@cloudflare/ai": "latest"
+  }
+}

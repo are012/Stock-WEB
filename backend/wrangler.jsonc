@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stock-web-agents",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["TradingAgent"]
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "TRADING_AGENT",
+        "class_name": "TradingAgent"
+      }
+    ]
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stock_db",
+      "database_id": "YOUR_D1_DATABASE_ID"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "VECTOR_INDEX",
+      "index_name": "stock-embeddings"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
