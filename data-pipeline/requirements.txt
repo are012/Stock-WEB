@@ -11,3 +11,5 @@ langchain-community
 langchain-openai
 praw
 ntscraper
+beautifulsoup4
+PyMuPDF
