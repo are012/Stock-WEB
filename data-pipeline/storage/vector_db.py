@@ -26,9 +26,9 @@ class VectorStorage:
         # 로컬에 데이터 저장
         self.client = chromadb.PersistentClient(path="./storage/chroma_db")
 
-        # Ollama 로컬 임베딩 모델 사용 (nomic-embed-text)
+        # Ollama 로컬 임베딩 모델 사용 (Jina Embeddings v2/v5 호환)
         self.embedding_fn = OllamaEmbeddingFunction(
-            model_name="nomic-embed-text",
+            model_name="jina/jina-embeddings-v2-base-en",
             base_url="http://localhost:11434"
         )
 

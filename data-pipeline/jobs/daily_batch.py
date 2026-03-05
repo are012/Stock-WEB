@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from collectors.kis_api import KisAPI
 from collectors.dart_api import DartCollector
 from collectors.naver_news import NaverNewsCollector
-from collectors.sns_collector import SNSCollector
+from collectors.korean_sns_collector import KoreanSNSCollector
 from collectors.report_collector import ReportCollector
 from collectors.macro_collector import MacroCollector
 from utils.ticker_mapper import TickerMapper
@@ -25,7 +25,7 @@ class DailyBatchJob:
         self.kis = KisAPI(is_mock=True)
         self.dart = DartCollector()
         self.naver = NaverNewsCollector()
-        self.sns = SNSCollector()
+        self.sns = KoreanSNSCollector() # 한국형 SNS 수집기로 교체
         self.report = ReportCollector()
         self.macro = MacroCollector()
 
@@ -71,15 +71,15 @@ class DailyBatchJob:
                 "url": "https://dart.fss.or.kr"
             })
 
-            # 4. SNS 여론(Reddit 등) 저장
-            reddit_posts = self.sns.get_reddit_sentiment(ticker, limit=3)
-            for p in reddit_posts:
+            # 4. 한국 특화 SNS 여론(에펨코리아 등) 저장
+            k_sns_posts = self.sns.get_fmkorea_sentiment(stock_name, count=3)
+            for p in k_sns_posts:
                 self.v_db.add_document(ticker, p['body'], {
-                    "source": "Reddit",
+                    "source": p['source'],
                     "title": p['title'],
                     "published_at": datetime.now().strftime("%Y-%m-%d"),
                     "data_type": "SNS",
-                    "score": str(p['score'])
+                    "url": p['link']
                 })
 
             print(f"✅ [{stock_name}] 데이터 파이프라인 처리 완료")
@@ -91,7 +91,6 @@ class DailyBatchJob:
         """시장 매크로 지표 업데이트"""
         print("\n--- 거시 경제(Macro) 지표 업데이트 중 ---")
         status = self.macro.get_macro_status()
-        # 매크로 지표는 별도의 메타데이터로 관리하거나 텍스트화하여 저장 가능
         macro_text = str(status)
         self.v_db.add_document("GLOBAL", macro_text, {
             "source": "Yahoo Finance",
@@ -106,12 +105,10 @@ class DailyBatchJob:
         self.run_macro_update()
         for stock in target_stocks:
             self.process_stock(stock)
-            time.sleep(1) # API 호출 간격 조절 (Rate Limit 방지)
+            time.sleep(1) # API 호출 간격 조절
         print(f"\n✨ [{datetime.now()}] 모든 배치 작업이 성공적으로 완료되었습니다.")
 
 if __name__ == "__main__":
-    # 분석 대상 종목 리스트 (관심 종목 위주로 시작)
     targets = ["삼성전자", "SK하이닉스", "카카오", "현대차", "NAVER"]
-    
     batch = DailyBatchJob()
     batch.execute_all(targets)
