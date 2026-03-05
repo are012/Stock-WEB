@@ -3,3 +3,11 @@ websockets
 python-dotenv
 finance-datareader
 pandas
+OpenDartReader
+psycopg2-binary
+chromadb
+openai
+langchain-community
+langchain-openai
+praw
+ntscraper
