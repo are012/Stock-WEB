@@ -1,0 +1,27 @@
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+.npm/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env
+
+# Next.js
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+ai-backend/alembic/versions/*
+!ai-backend/alembic/versions/.gitkeep
