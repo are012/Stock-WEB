@@ -1,31 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAgent } from "agents/react";
-import { TrendingUp, ShieldCheck, FileText, Activity, Play } from "lucide-react";
+import { useState } from "react";
+import { TrendingUp, ShieldCheck, Activity, Play, Zap } from "lucide-react";
 
 export default function Dashboard() {
   const [ticker, setTicker] = useState("삼성전자");
   const [decision, setDecision] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Cloudflare TradingAgent 연결
-  const agent = useAgent({
-    agent: "TradingAgent",
-    onStateUpdate: (state) => {
-      console.log("에이전트 상태 업데이트:", state);
-    },
-  });
-
-  const handleStartAnalysis = async () => {
-    // 에이전트의 @callable() 메서드 호출
-    const result = await agent.stub.getFinalDecision(ticker);
-    setDecision(result);
+  const handleAnalyze = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:4000/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker })
+      });
+      const result = await response.json();
+      setDecision(result);
+    } catch (error) {
+      console.error("분석 실패:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>Cloudflare Agents AI 트레이딩</h1>
+        <h1>퀀트멘탈 AI 트레이딩 시스템</h1>
         <div className="status">
           <input 
             type="text" 
@@ -34,42 +37,47 @@ export default function Dashboard() {
             style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #333', background: '#222', color: '#fff' }}
           />
           <button 
-            onClick={handleStartAnalysis}
+            onClick={handleAnalyze}
+            disabled={loading}
             style={{ marginLeft: '1rem', padding: '0.5rem 1rem', background: '#0070f3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            <Play size={16} /> 분석 시작
+            {loading ? <Activity size={16} className="animate-spin" /> : <Play size={16} />}
+            {loading ? '분석 중...' : 'AI 분석'}
           </button>
         </div>
       </header>
 
       <div className="grid">
-        {/* 실시간 결정 상태 */}
+        {/* 분석 결과 */}
         <div className="card">
-          <div className="card-title"><Activity size={20} /> AI 최종 결정</div>
+          <div className="card-title"><Zap size={20} color="#00ff88" /> AI 실시간 분석 결과</div>
           <div className="content">
             {decision ? (
               <>
-                <h2 className={decision.decision === "APPROVED" ? "signal-buy" : "signal-sell"}>
+                <h2 className={decision.decision === "BUY" ? "signal-buy" : "signal-sell"}>
                   {decision.decision}: {decision.ticker}
                 </h2>
-                <p>근거: {decision.reason}</p>
+                <div style={{ margin: '1rem 0' }}>
+                  <strong>AI 스코어: {decision.score}점</strong>
+                  <p style={{ fontSize: '0.9rem', color: '#ccc' }}>{decision.reason}</p>
+                </div>
               </>
             ) : (
-              <p>분석 버튼을 눌러 에이전트를 가동하세요.</p>
+              <p>종목을 입력하고 AI 분석을 시작하세요.</p>
             )}
           </div>
         </div>
 
-        {/* Cloudflare Agents 정보 */}
+        {/* 시스템 아키텍처 정보 */}
         <div className="card">
-          <div className="card-title"><ShieldCheck size={20} /> 에이전트 인프라 (Durable Objects)</div>
+          <div className="card-title"><ShieldCheck size={20} /> 로컬 가동 인프라</div>
           <p style={{ fontSize: '0.85rem', color: '#888' }}>
-            이 에이전트는 Cloudflare 글로벌 네트워크의 각 엣지에서 상태를 유지하며 동작합니다.
+            이 시스템은 고성능 Express 백엔드와 Next.js 14 프론트엔드로 구성된 하이브리드 자동매매 시스템입니다.
           </p>
           <div className="xai-logic">
-            - 위치: Region Earth<br />
-            - 데이터베이스: Cloudflare D1 (SQLite)<br />
-            - 모델: Workers AI (@cf/meta/llama-2)
+            - 백엔드: Node.js (Express)<br />
+            - 데이터베이스: PostgreSQL (Local)<br />
+            - 통신 방식: RESTful API (CORS 활성화)
           </div>
         </div>
       </div>
